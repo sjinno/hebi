@@ -1,10 +1,12 @@
 use rand::{self, Rng};
 use std::collections::VecDeque;
-use termion::color::{self, Green, Magenta, Reset, Yellow};
+use std::thread;
+use std::time::Duration;
+use termion::color::{self, Green, LightGreen, Magenta, Reset, Yellow};
 
 #[derive(Clone)]
 pub struct Maze {
-    pub maze: Vec<Vec<String>>,
+    maze: Vec<Vec<String>>,
     m: usize,
     n: usize,
 }
@@ -18,7 +20,7 @@ impl Maze {
         let mut rng = rand::thread_rng();
 
         let block = String::from("■");
-        let num_of_blocks = 128;
+        let num_of_blocks = 150;
 
         let mut count = 0;
         while count < num_of_blocks {
@@ -49,14 +51,24 @@ impl Maze {
     }
 
     pub fn draw_maze(&mut self) {
-        let mut cheese = self.place_object(format!("{}▲{}", color::Fg(Yellow), color::Fg(Reset)));
-        let mut mouse = self.place_object(format!("{}●{}", color::Fg(Magenta), color::Fg(Reset)));
+        let mouse = self.place_object(format!("{}●{}", color::Fg(LightGreen), color::Fg(Reset)));
+        let mut start_info = (mouse.0, mouse.1, self.m, self.n);
 
-        for row in self.maze.iter() {
-            for col in row {
-                print!("{} ", col);
-            }
-            println!();
+        loop {
+            let cheese = self.place_object(format!("{}▲{}", color::Fg(Yellow), color::Fg(Reset)));
+            let path = find_paths(
+                self.maze.clone(),
+                start_info,
+                format!("{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
+            )[0]
+            .clone();
+            draw(path, self.maze.clone(), start_info);
+
+            thread::sleep(Duration::from_nanos(1));
+
+            self.maze[cheese.0][cheese.1] = String::from(" ");
+            self.maze[mouse.0][mouse.1] = String::from(" ");
+            start_info = (cheese.0, cheese.1, self.m, self.n);
         }
     }
 
@@ -65,7 +77,6 @@ impl Maze {
         let r = rng.gen_range(1..self.m - 1);
         let c = rng.gen_range(1..self.n - 1);
         self.maze[r][c] = obj;
-
         Coord(r, c)
     }
 }
@@ -94,7 +105,7 @@ fn update_queues(
     }
 }
 
-pub fn find_paths(
+fn find_paths(
     mut maze: Vec<Vec<String>>,
     start_info: (usize, usize, usize, usize),
     target: String,
@@ -172,24 +183,33 @@ pub fn find_paths(
     paths
 }
 
-// pub fn draw(path: String, maze: Vec<Vec<String>>, start_info: (usize, usize, usize, usize)) {
-//     let mut m = maze.clone();
-//     let (mut r, mut c, _, _) = start_info;
-//     for p in path.chars() {
-//         match p {
-//             'U' => r -= 1,
-//             'D' => r += 1,
-//             'L' => c -= 1,
-//             'R' => c += 1,
-//             _ => {}
-//         }
-//         m[r][c] = "■".to_string();
-//     }
-
-//     for row in m {
-//         for col in row {
-//             print!("{} ", col);
-//         }
-//         println!();
-//     }
-// }
+fn draw(path: String, maze: Vec<Vec<String>>, start_info: (usize, usize, usize, usize)) {
+    let mut m = maze.clone();
+    let (mut r, mut c, _, _) = start_info;
+    let mut snake = VecDeque::<(usize, usize)>::new();
+    for p in path.chars() {
+        if snake.len() < 5 {
+            snake.push_back((r, c));
+        } else {
+            let (tail_r, tail_c) = snake.pop_front().unwrap();
+            m[tail_r][tail_c] = String::from(" ");
+            snake.push_back((r, c));
+        }
+        match p {
+            'U' => r -= 1,
+            'D' => r += 1,
+            'L' => c -= 1,
+            'R' => c += 1,
+            _ => {}
+        }
+        m[r][c] = format!("{}●{}", color::Fg(LightGreen), color::Fg(Reset));
+        for row in &m {
+            for col in row {
+                print!("{} ", col);
+            }
+            println!();
+        }
+        thread::sleep(Duration::from_millis(60));
+        println!("\x1B[2J\x1B[1;1H");
+    }
+}
