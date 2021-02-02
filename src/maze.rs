@@ -51,25 +51,24 @@ impl Maze {
         let mut maze = vec![vec![Square::Empty; col_bound]; row_bound];
         let mut rng = rand::thread_rng();
 
-        let block = Square::Block;
         let num_of_blocks = 150;
 
         let mut count = 0;
         while count < num_of_blocks {
             let r = rng.gen_range(1..row_bound);
             let c = rng.gen_range(1..col_bound);
-            maze[r][c] = block.clone();
+            maze[r][c] = Square::Block;
             count += 1;
         }
 
         // Build walls.
         (0..col_bound).into_iter().for_each(|c| {
-            maze[0][c] = block.clone();
-            maze[row_bound - 1][c] = block.clone();
+            maze[0][c] = Square::Block;
+            maze[row_bound - 1][c] = Square::Block;
         });
         (0..row_bound).into_iter().for_each(|c| {
-            maze[c][0] = block.clone();
-            maze[c][col_bound - 1] = block.clone();
+            maze[c][0] = Square::Block;
+            maze[c][col_bound - 1] = Square::Block;
         });
 
         Self {
@@ -93,7 +92,7 @@ impl Maze {
             counter.reset().expect("reset counter");
             counter.enable().expect("enable counter");
 
-            let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Oonly get the shortest path.
+            let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
 
             let instructions = counter
                 .read()
@@ -230,7 +229,7 @@ fn draw(
     start_info: (usize, usize, usize, usize),
     instructions: u64,
 ) {
-    let mut m = maze;
+    let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
     let mut snake = VecDeque::<(usize, usize)>::new();
     for p in path.chars() {
@@ -238,7 +237,7 @@ fn draw(
             snake.push_back((r, c));
         } else {
             let (tail_r, tail_c) = snake.pop_front().unwrap();
-            m[tail_r][tail_c] = Square::Empty;
+            mz[tail_r][tail_c] = Square::Empty;
             snake.push_back((r, c));
         }
         match p {
@@ -248,8 +247,8 @@ fn draw(
             'R' => c += 1,
             _ => {}
         }
-        m[r][c] = Square::Mouse;
-        for row in &m {
+        mz[r][c] = Square::Mouse;
+        for row in &mz {
             for col in row {
                 print!("{} ", col);
             }
