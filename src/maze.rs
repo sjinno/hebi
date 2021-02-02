@@ -2,7 +2,9 @@ use rand::{self, Rng};
 use std::collections::VecDeque;
 use std::thread;
 use std::time::Duration;
-use termion::color::{self, Green, LightGreen, Magenta, Reset, Yellow};
+use termion::color::{self, LightGreen, Reset, Yellow};
+
+struct Coord(usize, usize);
 
 #[derive(Clone)]
 pub struct Maze {
@@ -30,16 +32,7 @@ impl Maze {
             count += 1;
         }
 
-        Maze::build_walls(&mut maze, row_bound, col_bound, block);
-
-        Self {
-            maze,
-            m: row_bound,
-            n: col_bound,
-        }
-    }
-
-    fn build_walls(maze: &mut Vec<Vec<String>>, row_bound: usize, col_bound: usize, block: String) {
+        // Build walls.
         (0..col_bound).into_iter().for_each(|c| {
             maze[0][c] = block.clone();
             maze[row_bound - 1][c] = block.clone();
@@ -48,9 +41,15 @@ impl Maze {
             maze[c][0] = block.clone();
             maze[c][col_bound - 1] = block.clone();
         });
+
+        Self {
+            maze,
+            m: row_bound,
+            n: col_bound,
+        }
     }
 
-    pub fn draw_maze(&mut self) {
+    pub fn start_game_loop(&mut self) {
         let mouse = self.place_object(format!("{}●{}", color::Fg(LightGreen), color::Fg(Reset)));
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
 
@@ -61,11 +60,11 @@ impl Maze {
                 start_info,
                 format!("{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
             )[0]
-            .clone();
+            .clone(); // Oonly get the shortest path.
+
             draw(path, self.maze.clone(), start_info);
 
             thread::sleep(Duration::from_nanos(1));
-
             self.maze[cheese.0][cheese.1] = String::from(" ");
             self.maze[mouse.0][mouse.1] = String::from(" ");
             start_info = (cheese.0, cheese.1, self.m, self.n);
@@ -78,30 +77,6 @@ impl Maze {
         let c = rng.gen_range(1..self.n - 1);
         self.maze[r][c] = obj;
         Coord(r, c)
-    }
-}
-
-struct Coord(usize, usize);
-
-// PATH FINDING METHOD
-fn update_queues(
-    maze: &mut Vec<Vec<String>>,
-    pos_queue: &mut VecDeque<(usize, usize)>,
-    path_queue: &mut VecDeque<String>,
-    paths: &mut Vec<String>,
-    path: String,
-    direction: char,
-    row: usize,
-    col: usize,
-    target: String,
-) {
-    let p = &maze[row][col];
-    if p == &target {
-        paths.push(format!("{}{}", path, direction));
-    } else if p == " " {
-        maze[row][col] = format!("{} {}", color::Fg(Yellow), color::Fg(Reset));
-        pos_queue.push_back((row, col));
-        path_queue.push_back(format!("{}{}", path, direction));
     }
 }
 
@@ -121,7 +96,7 @@ fn find_paths(
         // println!("{:?}", pos);
         let (r, c) = pos;
         let path = path_queue.pop_front().unwrap();
-        let (row, col) = (r.clone(), c.clone());
+        let (row, col) = (r, c);
         if row > 0 {
             let up = row - 1;
             update_queues(
@@ -183,8 +158,29 @@ fn find_paths(
     paths
 }
 
+fn update_queues(
+    maze: &mut Vec<Vec<String>>,
+    pos_queue: &mut VecDeque<(usize, usize)>,
+    path_queue: &mut VecDeque<String>,
+    paths: &mut Vec<String>,
+    path: String,
+    direction: char,
+    row: usize,
+    col: usize,
+    target: String,
+) {
+    let p = &maze[row][col];
+    if p == &target {
+        paths.push(format!("{}{}", path, direction));
+    } else if p == " " {
+        maze[row][col] = format!("{} {}", color::Fg(Yellow), color::Fg(Reset));
+        pos_queue.push_back((row, col));
+        path_queue.push_back(format!("{}{}", path, direction));
+    }
+}
+
 fn draw(path: String, maze: Vec<Vec<String>>, start_info: (usize, usize, usize, usize)) {
-    let mut m = maze.clone();
+    let mut m = maze;
     let (mut r, mut c, _, _) = start_info;
     let mut snake = VecDeque::<(usize, usize)>::new();
     for p in path.chars() {
