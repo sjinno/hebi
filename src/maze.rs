@@ -1,4 +1,4 @@
-use perf_event::Builder;
+// use perf_event::Builder;
 use rand::{self, Rng}; // rand = "0.8.3"
 use std::collections::VecDeque;
 use std::fmt;
@@ -82,24 +82,42 @@ impl Maze {
         let mouse = self.place_object(Square::Mouse);
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
 
-        let mut counter = Builder::new()
-            .build()
-            .expect("failed to create instruction counter");
+        // let mut counter = Builder::new()
+        //     .build()
+        //     .expect("failed to create instruction counter");
+
+        let mut score = 0;
 
         loop {
             let cheese = self.place_object(Square::Cheese);
 
-            counter.reset().expect("reset counter");
-            counter.enable().expect("enable counter");
+            // counter.reset().expect("reset counter");
+            // counter.enable().expect("enable counter");
 
             let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
 
-            let instructions = counter
-                .read()
-                .expect("error reading find_paths instruction count");
-            counter.disable().expect("disable counter");
+            // let instructions = counter
+            //     .read()
+            //     .expect("error reading find_paths instruction count");
+            // counter.disable().expect("disable counter");
 
-            draw(path, self.maze.clone(), start_info, instructions);
+            // // NEW FEATURE +++++
+            let point = draw(path, self.maze.clone(), start_info, &score);
+            // if let Some(_) = point {
+            //     score += 1;
+            // }
+
+            // if score == 10 {
+            //     println!("You win!");
+            //     for row in &self.maze {
+            //         for col in row {
+            //             print!("{} ", col);
+            //         }
+            //         println!();
+            //     }
+            //     break;
+            // }
+            // // +++++++++++++++++
 
             thread::sleep(Duration::from_nanos(1));
             self.maze[cheese.0][cheese.1] = Square::Empty;
@@ -227,8 +245,8 @@ fn draw(
     path: String,
     maze: Vec<Vec<Square>>,
     start_info: (usize, usize, usize, usize),
-    instructions: u64,
-) {
+    score: &usize,
+) -> Option<()> {
     let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
     let mut snake = VecDeque::<(usize, usize)>::new();
@@ -248,15 +266,25 @@ fn draw(
             _ => {}
         }
         mz[r][c] = Square::Mouse;
+
+        // NEW FEATURE STARTS HERE
+        // match (r, c) {
+        //     (_, 1..=10) | (1..=10, _) => return Some(()),
+        //     _ => (),
+        // }
+        // println!("Current score: {}", score);
+        // +++++++++++++++++++++++
+
         for row in &mz {
             for col in row {
                 print!("{} ", col);
             }
             println!();
         }
-        println!("instructions to find paths: {}", instructions);
+        // println!("instructions to find paths: {}", instructions);
 
         thread::sleep(Duration::from_millis(60));
         println!("\x1B[2J\x1B[1;1H");
     }
+    None
 }

@@ -7,6 +7,9 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-perf-event = "0.4.6"
+# perf-event = "0.4.6"
 rand = "0.8.3"
 termion = "1.5.6"
+
+[profile.release]
+debug = true
