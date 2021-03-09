@@ -81,6 +81,7 @@ impl Maze {
     pub fn start_game_loop(&mut self) {
         let mouse = self.place_object(Square::Mouse);
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
+        let mut snake = VecDeque::<(usize, usize)>::new();
 
         // let mut counter = Builder::new()
         //     .build()
@@ -95,6 +96,7 @@ impl Maze {
             // counter.enable().expect("enable counter");
 
             let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
+            score += 1;
 
             // let instructions = counter
             //     .read()
@@ -102,7 +104,7 @@ impl Maze {
             // counter.disable().expect("disable counter");
 
             // // NEW FEATURE +++++
-            let point = draw(path, self.maze.clone(), start_info, &score);
+            let point = draw(path, self.maze.clone(), start_info, &score, &mut snake);
             // if let Some(_) = point {
             //     score += 1;
             // }
@@ -246,18 +248,22 @@ fn draw(
     maze: Vec<Vec<Square>>,
     start_info: (usize, usize, usize, usize),
     score: &usize,
+    snake: &mut VecDeque<(usize, usize)>,
 ) -> Option<()> {
     let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
-    let mut snake = VecDeque::<(usize, usize)>::new();
+    snake.push_back((r, c));
+
     for p in path.chars() {
-        if snake.len() < 5 {
+        if snake.len() < *score {
             snake.push_back((r, c));
+            let (tail_r, tail_c) = snake.pop_front().unwrap();
+            mz[tail_r][tail_c] = Square::Empty;
         } else {
             let (tail_r, tail_c) = snake.pop_front().unwrap();
             mz[tail_r][tail_c] = Square::Empty;
-            snake.push_back((r, c));
         }
+
         match p {
             'U' => r -= 1,
             'D' => r += 1,
@@ -274,17 +280,19 @@ fn draw(
         // }
         // println!("Current score: {}", score);
         // +++++++++++++++++++++++
-
+        println!("Current score: {}", score);
         for row in &mz {
             for col in row {
                 print!("{} ", col);
             }
             println!();
         }
+
         // println!("instructions to find paths: {}", instructions);
 
         thread::sleep(Duration::from_millis(60));
         println!("\x1B[2J\x1B[1;1H");
+        snake.push_back((r, c));
     }
     None
 }
