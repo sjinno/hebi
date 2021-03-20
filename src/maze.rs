@@ -10,7 +10,7 @@ enum Square {
     Empty,
     Visited,
     Block,
-    Mouse,
+    Snake,
     Cheese,
 }
 
@@ -20,7 +20,7 @@ impl fmt::Display for Square {
             Square::Empty | Square::Visited => fmt.write_str(" "),
             Square::Block => fmt.write_str("■"),
             Square::Cheese => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
-            Square::Mouse => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
+            Square::Snake => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
         }
     }
 }
@@ -87,17 +87,17 @@ impl MazeBuilder {
 
 impl Maze {
     pub fn start_game_loop(&mut self) {
-        let mouse = self.place_object(Square::Mouse);
-        let mut start_info = (mouse.0, mouse.1, self.m, self.n);
-        let mut snake = VecDeque::<(usize, usize)>::new();
+        let snake = self.place_object(Square::Snake);
+        let mut start_info = (snake.0, snake.1, self.m, self.n);
+        let mut snake_size = VecDeque::<(usize, usize)>::new();
         let mut score = 0;
         loop {
             let cheese = self.place_object(Square::Cheese);
             let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
-            draw(path, self.maze.clone(), start_info, &score, &mut snake);
+            draw(path, self.maze.clone(), start_info, &score, &mut snake_size);
             thread::sleep(Duration::from_nanos(1));
             self.maze[cheese.0][cheese.1] = Square::Empty;
-            self.maze[mouse.0][mouse.1] = Square::Empty;
+            self.maze[snake.0][snake.1] = Square::Empty;
             start_info = (cheese.0, cheese.1, self.m, self.n);
             score += 1;
         }
@@ -220,18 +220,18 @@ fn draw(
     maze: Vec<Vec<Square>>,
     start_info: (usize, usize, usize, usize),
     score: &usize,
-    snake: &mut VecDeque<(usize, usize)>,
+    snake_size: &mut VecDeque<(usize, usize)>,
 ) -> Option<()> {
     let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
 
     for p in path.chars() {
-        if snake.len() < 6 {
-            snake.push_back((r, c));
-            let (tail_r, tail_c) = snake.pop_front().unwrap();
+        if snake_size.len() < 6 {
+            snake_size.push_back((r, c));
+            let (tail_r, tail_c) = snake_size.pop_front().unwrap();
             mz[tail_r][tail_c] = Square::Empty;
         } else {
-            let (tail_r, tail_c) = snake.pop_front().unwrap();
+            let (tail_r, tail_c) = snake_size.pop_front().unwrap();
             mz[tail_r][tail_c] = Square::Empty;
         }
 
@@ -242,7 +242,7 @@ fn draw(
             'R' => c += 1,
             _ => {}
         }
-        mz[r][c] = Square::Mouse;
+        mz[r][c] = Square::Snake;
 
         println!("Current score: {}", score);
         for row in &mz {
@@ -254,7 +254,7 @@ fn draw(
 
         thread::sleep(Duration::from_millis(60));
         println!("\x1B[2J\x1B[1;1H");
-        snake.push_back((r, c));
+        snake_size.push_back((r, c));
     }
     None
 }
