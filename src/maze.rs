@@ -1,10 +1,18 @@
-// use perf_event::Builder; // perf-event = "0.4"
 use rand::{self, Rng}; // rand = "0.8.3"
 use std::collections::VecDeque;
 use std::fmt;
 use std::thread;
 use std::time::Duration;
 use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Square {
+    Empty,
+    Visited,
+    Block,
+    Mouse,
+    Cheese,
+}
 
 struct Coord(usize, usize);
 
@@ -15,23 +23,6 @@ pub struct Maze {
     n: usize,
 }
 
-/// Contents of a square in the maze.
-///
-/// In practice, Rust will assign these the the numbers 0..4, and represent
-/// `Square` values as single bytes. `Copy` means that you don't need to use
-/// `clone`: they're sort of always cloned. `Copy` is convenient, but it's only
-/// permitted for simple types like this; you can't use it for something more
-/// complex, like `Maze`.
-#[derive(Clone, Copy, Eq, PartialEq)]
-enum Square {
-    Empty,
-    Visited,
-    Block,
-    Mouse,
-    Cheese,
-}
-
-/// Tell `println!` how `{}` should display `Square` values.
 impl fmt::Display for Square {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -44,33 +35,13 @@ impl fmt::Display for Square {
 }
 
 impl Maze {
-    pub fn new(m: usize, n: usize) -> Self {
+    pub fn new(m: &usize, n: &usize) -> Self {
         let row_bound = m + 2;
         let col_bound = n + 2;
-
         let mut maze = vec![vec![Square::Empty; col_bound]; row_bound];
-        let mut rng = rand::thread_rng();
-
-        let num_of_blocks = 150;
-
-        let mut count = 0;
-        while count < num_of_blocks {
-            let r = rng.gen_range(1..row_bound);
-            let c = rng.gen_range(1..col_bound);
-            maze[r][c] = Square::Block;
-            count += 1;
-        }
-
-        // Build walls.
-        (0..col_bound).into_iter().for_each(|c| {
-            maze[0][c] = Square::Block;
-            maze[row_bound - 1][c] = Square::Block;
-        });
-        (0..row_bound).into_iter().for_each(|c| {
-            maze[c][0] = Square::Block;
-            maze[c][col_bound - 1] = Square::Block;
-        });
-
+        let num_of_blocks = 150; // Number of obstacles in maze.
+        place_obstacles(&mut maze, &num_of_blocks, &row_bound, &col_bound);
+        build_walls(&mut maze, &row_bound, &col_bound);
         Self {
             maze,
             m: row_bound,
@@ -107,6 +78,33 @@ impl Maze {
         self.maze[r][c] = obj;
         Coord(r, c)
     }
+}
+
+fn place_obstacles(
+    maze: &mut Vec<Vec<Square>>,
+    num_of_blocks: &usize,
+    row_bound: &usize,
+    col_bound: &usize,
+) {
+    let mut rng = rand::thread_rng();
+    let mut count = 0;
+    while &count < num_of_blocks {
+        let r = rng.gen_range(1..*row_bound);
+        let c = rng.gen_range(1..*col_bound);
+        maze[r][c] = Square::Block;
+        count += 1;
+    }
+}
+
+fn build_walls(maze: &mut Vec<Vec<Square>>, row_bound: &usize, col_bound: &usize) {
+    (0..*col_bound).into_iter().for_each(|c| {
+        maze[0][c] = Square::Block;
+        maze[*row_bound - 1][c] = Square::Block;
+    });
+    (0..*row_bound).into_iter().for_each(|c| {
+        maze[c][0] = Square::Block;
+        maze[c][*col_bound - 1] = Square::Block;
+    });
 }
 
 fn find_paths(
