@@ -1,10 +1,10 @@
-// use perf_event::Builder;
+// use perf_event::Builder; // perf-event = "0.4"
 use rand::{self, Rng}; // rand = "0.8.3"
 use std::collections::VecDeque;
 use std::fmt;
 use std::thread;
 use std::time::Duration;
-use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6" // perf-event = "0.4"
+use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
 
 struct Coord(usize, usize);
 
@@ -83,48 +83,20 @@ impl Maze {
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
         let mut snake = VecDeque::<(usize, usize)>::new();
 
-        // let mut counter = Builder::new()
-        //     .build()
-        //     .expect("failed to create instruction counter");
-
         let mut score = 0;
 
         loop {
             let cheese = self.place_object(Square::Cheese);
 
-            // counter.reset().expect("reset counter");
-            // counter.enable().expect("enable counter");
-
             let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
-            score += 1;
 
-            // let instructions = counter
-            //     .read()
-            //     .expect("error reading find_paths instruction count");
-            // counter.disable().expect("disable counter");
-
-            // // NEW FEATURE +++++
-            let point = draw(path, self.maze.clone(), start_info, &score, &mut snake);
-            // if let Some(_) = point {
-            //     score += 1;
-            // }
-
-            // if score == 10 {
-            //     println!("You win!");
-            //     for row in &self.maze {
-            //         for col in row {
-            //             print!("{} ", col);
-            //         }
-            //         println!();
-            //     }
-            //     break;
-            // }
-            // // +++++++++++++++++
+            draw(path, self.maze.clone(), start_info, &score, &mut snake);
 
             thread::sleep(Duration::from_nanos(1));
             self.maze[cheese.0][cheese.1] = Square::Empty;
             self.maze[mouse.0][mouse.1] = Square::Empty;
             start_info = (cheese.0, cheese.1, self.m, self.n);
+            score += 1;
         }
     }
 
@@ -273,13 +245,6 @@ fn draw(
         }
         mz[r][c] = Square::Mouse;
 
-        // NEW FEATURE STARTS HERE
-        // match (r, c) {
-        //     (_, 1..=10) | (1..=10, _) => return Some(()),
-        //     _ => (),
-        // }
-        // println!("Current score: {}", score);
-        // +++++++++++++++++++++++
         println!("Current score: {}", score);
         for row in &mz {
             for col in row {
@@ -287,8 +252,6 @@ fn draw(
             }
             println!();
         }
-
-        // println!("instructions to find paths: {}", instructions);
 
         thread::sleep(Duration::from_millis(60));
         println!("\x1B[2J\x1B[1;1H");

@@ -1,5 +1,4 @@
 mod maze;
-
 use maze::Maze;
 
 fn main() {
