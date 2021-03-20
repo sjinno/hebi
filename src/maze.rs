@@ -14,6 +14,17 @@ enum Square {
     Cheese,
 }
 
+impl fmt::Display for Square {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Square::Empty | Square::Visited => fmt.write_str(" "),
+            Square::Block => fmt.write_str("■"),
+            Square::Cheese => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
+            Square::Mouse => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
+        }
+    }
+}
+
 struct Coord(usize, usize);
 
 #[derive(Clone)]
@@ -74,32 +85,16 @@ impl MazeBuilder {
     }
 }
 
-impl fmt::Display for Square {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Square::Empty | Square::Visited => fmt.write_str(" "),
-            Square::Block => fmt.write_str("■"),
-            Square::Mouse => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
-            Square::Cheese => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
-        }
-    }
-}
-
 impl Maze {
     pub fn start_game_loop(&mut self) {
         let mouse = self.place_object(Square::Mouse);
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
         let mut snake = VecDeque::<(usize, usize)>::new();
-
         let mut score = 0;
-
         loop {
             let cheese = self.place_object(Square::Cheese);
-
             let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
-
             draw(path, self.maze.clone(), start_info, &score, &mut snake);
-
             thread::sleep(Duration::from_nanos(1));
             self.maze[cheese.0][cheese.1] = Square::Empty;
             self.maze[mouse.0][mouse.1] = Square::Empty;
@@ -127,10 +122,8 @@ fn find_paths(
     let mut path_queue = VecDeque::<String>::new();
     pos_queue.push_back((row, col));
     path_queue.push_back("S".to_string());
-
     while let Some(pos) = pos_queue.pop_front() {
         let (r, c) = pos;
-
         let path = path_queue.pop_front().unwrap();
         let (row, col) = (r, c);
         if row > 0 {
@@ -198,7 +191,6 @@ fn find_paths(
             }
         }
     }
-
     String::new()
 }
 
@@ -232,10 +224,9 @@ fn draw(
 ) -> Option<()> {
     let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
-    snake.push_back((r, c));
 
     for p in path.chars() {
-        if snake.len() < *score {
+        if snake.len() < 6 {
             snake.push_back((r, c));
             let (tail_r, tail_c) = snake.pop_front().unwrap();
             mz[tail_r][tail_c] = Square::Empty;
