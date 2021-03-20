@@ -1,9 +1,8 @@
 mod maze;
-use maze::Maze;
+use maze::{Maze, MazeBuilder};
 
 fn main() {
     println!("\x1B[2J\x1B[1;1H");
-    let (m, n) = (32, 32);
-    let mut maze1 = Maze::new(&m, &n);
+    let mut maze1: Maze = MazeBuilder::new(32, 32).place_obstacles(150).build();
     maze1.start_game_loop();
 }

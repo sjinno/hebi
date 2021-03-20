@@ -23,6 +23,57 @@ pub struct Maze {
     n: usize,
 }
 
+pub struct MazeBuilder {
+    maze: Vec<Vec<Square>>,
+    m: usize,
+    n: usize,
+}
+
+impl MazeBuilder {
+    pub fn new(m: usize, n: usize) -> Self {
+        let row_bound = m + 2;
+        let col_bound = n + 2;
+        let maze = Self {
+            maze: vec![vec![Square::Empty; col_bound]; row_bound],
+            m: row_bound,
+            n: col_bound,
+        };
+        maze.build_walls()
+    }
+
+    pub fn place_obstacles(mut self, num_of_blocks: usize) -> Self {
+        let mut rng = rand::thread_rng();
+        let mut count = 0;
+        while count < num_of_blocks {
+            let r = rng.gen_range(1..self.m);
+            let c = rng.gen_range(1..self.n);
+            self.maze[r][c] = Square::Block;
+            count += 1;
+        }
+        self
+    }
+
+    fn build_walls(mut self) -> Self {
+        (0..self.m).into_iter().for_each(|c| {
+            self.maze[0][c] = Square::Block;
+            self.maze[self.m - 1][c] = Square::Block;
+        });
+        (0..self.n).into_iter().for_each(|c| {
+            self.maze[c][0] = Square::Block;
+            self.maze[c][self.n - 1] = Square::Block;
+        });
+        self
+    }
+
+    pub fn build(self) -> Maze {
+        Maze {
+            maze: self.maze,
+            m: self.m,
+            n: self.n,
+        }
+    }
+}
+
 impl fmt::Display for Square {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -35,20 +86,6 @@ impl fmt::Display for Square {
 }
 
 impl Maze {
-    pub fn new(m: &usize, n: &usize) -> Self {
-        let row_bound = m + 2;
-        let col_bound = n + 2;
-        let mut maze = vec![vec![Square::Empty; col_bound]; row_bound];
-        let num_of_blocks = 150; // Number of obstacles in maze.
-        place_obstacles(&mut maze, &num_of_blocks, &row_bound, &col_bound);
-        build_walls(&mut maze, &row_bound, &col_bound);
-        Self {
-            maze,
-            m: row_bound,
-            n: col_bound,
-        }
-    }
-
     pub fn start_game_loop(&mut self) {
         let mouse = self.place_object(Square::Mouse);
         let mut start_info = (mouse.0, mouse.1, self.m, self.n);
@@ -78,33 +115,6 @@ impl Maze {
         self.maze[r][c] = obj;
         Coord(r, c)
     }
-}
-
-fn place_obstacles(
-    maze: &mut Vec<Vec<Square>>,
-    num_of_blocks: &usize,
-    row_bound: &usize,
-    col_bound: &usize,
-) {
-    let mut rng = rand::thread_rng();
-    let mut count = 0;
-    while &count < num_of_blocks {
-        let r = rng.gen_range(1..*row_bound);
-        let c = rng.gen_range(1..*col_bound);
-        maze[r][c] = Square::Block;
-        count += 1;
-    }
-}
-
-fn build_walls(maze: &mut Vec<Vec<Square>>, row_bound: &usize, col_bound: &usize) {
-    (0..*col_bound).into_iter().for_each(|c| {
-        maze[0][c] = Square::Block;
-        maze[*row_bound - 1][c] = Square::Block;
-    });
-    (0..*row_bound).into_iter().for_each(|c| {
-        maze[c][0] = Square::Block;
-        maze[c][*col_bound - 1] = Square::Block;
-    });
 }
 
 fn find_paths(
