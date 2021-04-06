@@ -1,8 +1,9 @@
-use rand::{self, Rng}; // rand = "0.8.3"
 use std::collections::VecDeque;
-use std::fmt;
+use std::fmt::{self, Write};
 use std::thread;
 use std::time::Duration;
+
+use rand::{self, Rng}; // rand = "0.8.3"
 use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -11,15 +12,15 @@ enum Square {
     Visited,
     Block,
     Snake,
-    Cheese,
+    Bait,
 }
 
 impl fmt::Display for Square {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Square::Empty | Square::Visited => fmt.write_str(" "),
-            Square::Block => fmt.write_str("■"),
-            Square::Cheese => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
+            Square::Empty | Square::Visited => fmt.write_char(' '),
+            Square::Block => fmt.write_char('■'),
+            Square::Bait => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
             Square::Snake => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
         }
     }
@@ -92,8 +93,8 @@ impl Maze {
         let mut snake_size = VecDeque::<(usize, usize)>::new();
         let mut score = 0;
         loop {
-            let cheese = self.place_object(Square::Cheese);
-            let path = find_paths(self.maze.clone(), start_info, Square::Cheese); // Only get the shortest path.
+            let cheese = self.place_object(Square::Bait);
+            let path = find_paths(self.maze.clone(), start_info, Square::Bait); // Only get the shortest path.
             draw(path, self.maze.clone(), start_info, &score, &mut snake_size);
             thread::sleep(Duration::from_nanos(1));
             self.maze[cheese.0][cheese.1] = Square::Empty;
