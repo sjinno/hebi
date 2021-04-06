@@ -6,6 +6,8 @@ use std::time::Duration;
 use rand::{self, Rng}; // rand = "0.8.3"
 use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
 
+use crate::{clear, color};
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Square {
     Empty,
@@ -20,8 +22,8 @@ impl fmt::Display for Square {
         match self {
             Square::Empty | Square::Visited => fmt.write_char(' '),
             Square::Block => fmt.write_char('■'),
-            Square::Bait => write!(fmt, "{}▲{}", color::Fg(Yellow), color::Fg(Reset)),
-            Square::Snake => write!(fmt, "{}●{}", color::Fg(LightGreen), color::Fg(Reset)),
+            Square::Bait => write!(fmt, "{}", color!(bait)),
+            Square::Snake => write!(fmt, "{}", color!(snake)),
         }
     }
 }
@@ -112,6 +114,10 @@ impl Maze {
         Coord(r, c)
     }
 }
+
+// trait Snake {
+//     fn do_the_thing(&mut self);
+// }
 
 fn find_paths(
     mut maze: Vec<Vec<Square>>,
@@ -222,7 +228,7 @@ fn draw(
     start_info: (usize, usize, usize, usize),
     score: &usize,
     snake_size: &mut VecDeque<(usize, usize)>,
-) -> Option<()> {
+) {
     let mut mz = maze;
     let (mut r, mut c, _, _) = start_info;
 
@@ -254,8 +260,7 @@ fn draw(
         }
 
         thread::sleep(Duration::from_millis(60));
-        println!("\x1B[2J\x1B[1;1H");
+        clear!(all);
         snake_size.push_back((r, c));
     }
-    None
 }
