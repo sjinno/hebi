@@ -3,23 +3,6 @@ use std::collections::VecDeque;
 use crate::maze::{Coord, Field};
 use crate::square::Square;
 
-// trait PathFinder {
-//     fn find_paths(
-//         mut maze: Vec<Vec<Square>>,
-//         start_info: (Coord, Field),
-//         target: Square,
-//     ) -> String;
-//     fn update_queues(
-//         maze: &mut Vec<Vec<Square>>,
-//         pos_queue: &mut VecDeque<Coord>,
-//         path_queue: &mut VecDeque<String>,
-//         path: String,
-//         direction: char,
-//         coord: Coord,
-//         target: Square,
-//     ) -> Option<String>;
-// }
-
 pub fn find_paths(
     mut maze: Vec<Vec<Square>>,
     start_info: (Coord, Field),

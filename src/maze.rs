@@ -20,13 +20,11 @@ pub struct MazeBuilder {
 
 impl MazeBuilder {
     pub fn new(m: usize, n: usize) -> Self {
-        let row_bound = m + 2;
-        let col_bound = n + 2;
         let maze = Self {
-            maze: vec![vec![Square::Empty; col_bound]; row_bound],
+            maze: vec![vec![Square::Empty; n + 2]; m + 2],
             field: Field {
-                width: row_bound,
-                height: col_bound,
+                height: m + 2,
+                width: n + 2,
             },
         };
         maze.build_walls()
@@ -45,13 +43,13 @@ impl MazeBuilder {
     }
 
     fn build_walls(mut self) -> Self {
-        (0..self.field.height).into_iter().for_each(|c| {
-            self.maze[0][c] = Square::Block;
-            self.maze[self.field.height - 1][c] = Square::Block;
+        (0..self.field.height).into_iter().for_each(|r| {
+            self.maze[r][0] = Square::Block;
+            self.maze[r][self.field.width - 1] = Square::Block;
         });
         (0..self.field.width).into_iter().for_each(|c| {
-            self.maze[c][0] = Square::Block;
-            self.maze[c][self.field.width - 1] = Square::Block;
+            self.maze[0][c] = Square::Block;
+            self.maze[self.field.height - 1][c] = Square::Block;
         });
         self
     }
