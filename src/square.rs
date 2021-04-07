@@ -1,8 +1,6 @@
-use std::fmt::{self, Write};
-
-use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
-
 use crate::color;
+use std::fmt::{self, Write};
+use termion::color::{self, LightGreen, Reset, Yellow}; // termion = "1.5.6"
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Square {

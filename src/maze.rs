@@ -1,9 +1,5 @@
-use rand::{self, Rng}; // rand = "0.8.3"
-
 use crate::square::Square;
-
-#[derive(Clone, Copy)]
-pub struct Coord(pub usize, pub usize);
+use rand::{self, Rng}; // rand = "0.8.3"
 
 #[derive(Clone, Copy)]
 pub struct Field {
@@ -67,6 +63,9 @@ impl MazeBuilder {
         }
     }
 }
+
+#[derive(Clone, Copy)]
+pub struct Coord(pub usize, pub usize);
 
 impl Maze {
     pub fn place_object(&mut self, obj: Square) -> Coord {
