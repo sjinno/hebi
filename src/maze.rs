@@ -1,10 +1,11 @@
-use crate::square::Square;
-use rand::{self, Rng}; // rand = "0.8.3"
 use std::collections::VecDeque;
 use std::thread;
 use std::time::Duration;
 
+use rand::{self, Rng}; // rand = "0.8.3"
+
 use crate::clear;
+use crate::square::Square;
 
 #[derive(Clone, Copy)]
 pub struct Field {
