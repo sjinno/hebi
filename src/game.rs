@@ -7,7 +7,7 @@ pub struct Game;
 impl Game {
     pub fn start() {
         // Clears the entire buffer and
-        // place the curson at the very beginning.
+        // places the curson at the very beginning.
         clear!(all);
         // Build 32x32 square maze with 150 randomly placed obstacles.
         let mut maze: Maze = MazeBuilder::new(32, 32).place_obstacles(150).build();
