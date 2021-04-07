@@ -17,27 +17,32 @@ pub enum Square {
 impl fmt::Display for Square {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Square::Empty | Square::Visited => fmt.write_char(' '),
-            Square::Block => fmt.write_char('■'),
             Square::Bait => write!(fmt, "{}", color!(bait)),
             Square::Snake => write!(fmt, "{}", color!(snake)),
+            Square::Block => fmt.write_char('■'),
+            Square::Empty | Square::Visited => fmt.write_char(' '),
         }
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Coord(pub usize, pub usize);
+
+#[derive(Clone, Copy)]
+pub struct Field {
+    pub height: usize,
+    pub width: usize,
+}
 
 #[derive(Clone)]
 pub struct Maze {
     pub maze: Vec<Vec<Square>>,
-    pub m: usize,
-    pub n: usize,
+    pub field: Field,
 }
 
 pub struct MazeBuilder {
     maze: Vec<Vec<Square>>,
-    m: usize,
-    n: usize,
+    field: Field,
 }
 
 impl MazeBuilder {
@@ -46,8 +51,10 @@ impl MazeBuilder {
         let col_bound = n + 2;
         let maze = Self {
             maze: vec![vec![Square::Empty; col_bound]; row_bound],
-            m: row_bound,
-            n: col_bound,
+            field: Field {
+                width: row_bound,
+                height: col_bound,
+            },
         };
         maze.build_walls()
     }
@@ -56,8 +63,8 @@ impl MazeBuilder {
         let mut rng = rand::thread_rng();
         let mut count = 0;
         while count < num_of_blocks {
-            let r = rng.gen_range(1..self.m);
-            let c = rng.gen_range(1..self.n);
+            let r = rng.gen_range(1..self.field.height);
+            let c = rng.gen_range(1..self.field.width);
             self.maze[r][c] = Square::Block;
             count += 1;
         }
@@ -65,13 +72,13 @@ impl MazeBuilder {
     }
 
     fn build_walls(mut self) -> Self {
-        (0..self.m).into_iter().for_each(|c| {
+        (0..self.field.height).into_iter().for_each(|c| {
             self.maze[0][c] = Square::Block;
-            self.maze[self.m - 1][c] = Square::Block;
+            self.maze[self.field.height - 1][c] = Square::Block;
         });
-        (0..self.n).into_iter().for_each(|c| {
+        (0..self.field.width).into_iter().for_each(|c| {
             self.maze[c][0] = Square::Block;
-            self.maze[c][self.n - 1] = Square::Block;
+            self.maze[c][self.field.width - 1] = Square::Block;
         });
         self
     }
@@ -79,8 +86,7 @@ impl MazeBuilder {
     pub fn build(self) -> Maze {
         Maze {
             maze: self.maze,
-            m: self.m,
-            n: self.n,
+            field: self.field,
         }
     }
 }
@@ -88,8 +94,8 @@ impl MazeBuilder {
 impl Maze {
     pub fn place_object(&mut self, obj: Square) -> Coord {
         let mut rng = rand::thread_rng();
-        let r = rng.gen_range(1..self.m - 1);
-        let c = rng.gen_range(1..self.n - 1);
+        let r = rng.gen_range(1..self.field.height - 1);
+        let c = rng.gen_range(1..self.field.width - 1);
         self.maze[r][c] = obj;
         Coord(r, c)
     }

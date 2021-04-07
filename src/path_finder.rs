@@ -1,16 +1,16 @@
 use std::collections::VecDeque;
 
-use crate::maze::Square;
+use crate::maze::{Coord, Field, Square};
 
 pub fn find_paths(
     mut maze: Vec<Vec<Square>>,
-    start_info: (usize, usize, usize, usize),
+    start_info: (Coord, Field),
     target: Square,
 ) -> String {
-    let (row, col, row_len, col_len) = start_info;
+    let (coord, field) = start_info;
     let mut pos_queue = VecDeque::<(usize, usize)>::new();
     let mut path_queue = VecDeque::<String>::new();
-    pos_queue.push_back((row, col));
+    pos_queue.push_back((coord.0, coord.1));
     path_queue.push_back("S".to_string());
     while let Some(pos) = pos_queue.pop_front() {
         let (r, c) = pos;
@@ -32,7 +32,7 @@ pub fn find_paths(
                 return p;
             }
         }
-        if row < row_len - 1 {
+        if row < field.height - 1 {
             let down = row + 1;
             let path = update_queues(
                 &mut maze,
@@ -64,7 +64,7 @@ pub fn find_paths(
                 return p;
             }
         }
-        if col < col_len - 1 {
+        if col < field.width - 1 {
             let right = col + 1;
             let path = update_queues(
                 &mut maze,
