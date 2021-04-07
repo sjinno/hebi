@@ -3,8 +3,9 @@ use std::thread;
 use std::time::Duration;
 
 use crate::clear;
-use crate::maze::{Coord, Field, Maze, Square};
+use crate::maze::{Coord, Field, Maze};
 use crate::path_finder::*;
+use crate::square::Square;
 
 pub trait Snake {
     fn activate_snake(&mut self);
