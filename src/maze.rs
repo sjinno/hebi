@@ -82,22 +82,21 @@ impl Maze {
 
     pub fn draw(
         path: String,
-        maze: Vec<Vec<Square>>,
+        maze: &mut Maze,
         start_info: (Coord, Field),
         score: &usize,
         snake_size: &mut VecDeque<(usize, usize)>,
     ) {
-        let mut mz = maze;
         let (mut coord, _) = start_info;
 
         for p in path.chars() {
             if snake_size.len() < 6 {
                 snake_size.push_back((coord.0, coord.1));
                 let (tail_r, tail_c) = snake_size.pop_front().unwrap();
-                mz[tail_r][tail_c] = Square::Empty;
+                maze.maze[tail_r][tail_c] = Square::Empty;
             } else {
                 let (tail_r, tail_c) = snake_size.pop_front().unwrap();
-                mz[tail_r][tail_c] = Square::Empty;
+                maze.maze[tail_r][tail_c] = Square::Empty;
             }
 
             match p {
@@ -107,10 +106,10 @@ impl Maze {
                 'R' => coord.1 += 1,
                 _ => {}
             }
-            mz[coord.0][coord.1] = Square::Snake;
+            maze.maze[coord.0][coord.1] = Square::Snake;
 
             println!("Current score: {}", score);
-            for row in &mz {
+            for row in &maze.maze {
                 for col in row {
                     print!("{} ", col);
                 }

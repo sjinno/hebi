@@ -19,7 +19,7 @@ impl Snake for Maze {
         loop {
             let bait_coord = self.place_object(Square::Bait);
             let path = find_paths(self.clone(), start_info, Square::Bait); // Only get the shortest path.
-            Self::draw(path, self.maze.clone(), start_info, &score, &mut snake_size);
+            Self::draw(path, &mut self.clone(), start_info, &score, &mut snake_size);
             thread::sleep(Duration::from_nanos(1));
             self.maze[bait_coord.0][bait_coord.1] = Square::Empty;
             self.maze[snake_coord.0][snake_coord.1] = Square::Empty;
