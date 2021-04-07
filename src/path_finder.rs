@@ -84,11 +84,11 @@ fn update_queues(
     coord: Coord,
     target: Square,
 ) -> Option<String> {
-    let p = maze.maze[coord.0][coord.1];
+    let p = maze.cells[coord.0][coord.1];
     if p == target {
         return Some(format!("{}{}", path, direction));
     } else if p == Square::Empty {
-        maze.maze[coord.0][coord.1] = Square::Visited;
+        maze.cells[coord.0][coord.1] = Square::Visited;
         pos_queue.push_back(coord);
         path_queue.push_back(format!("{}{}", path, direction));
     }

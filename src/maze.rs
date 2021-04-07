@@ -15,19 +15,19 @@ pub struct Field {
 
 #[derive(Clone)]
 pub struct Maze {
-    pub maze: Vec<Vec<Square>>,
+    pub cells: Vec<Vec<Square>>,
     pub field: Field,
 }
 
 pub struct MazeBuilder {
-    maze: Vec<Vec<Square>>,
+    cells: Vec<Vec<Square>>,
     field: Field,
 }
 
 impl MazeBuilder {
     pub fn new(m: usize, n: usize) -> Self {
         let maze = Self {
-            maze: vec![vec![Square::Empty; n + 2]; m + 2],
+            cells: vec![vec![Square::Empty; n + 2]; m + 2],
             field: Field {
                 height: m + 2,
                 width: n + 2,
@@ -42,7 +42,7 @@ impl MazeBuilder {
         while count < num_of_blocks {
             let r = rng.gen_range(1..self.field.height);
             let c = rng.gen_range(1..self.field.width);
-            self.maze[r][c] = Square::Block;
+            self.cells[r][c] = Square::Block;
             count += 1;
         }
         self
@@ -50,19 +50,19 @@ impl MazeBuilder {
 
     fn build_walls(mut self) -> Self {
         (0..self.field.height).for_each(|r| {
-            self.maze[r][0] = Square::Block;
-            self.maze[r][self.field.width - 1] = Square::Block;
+            self.cells[r][0] = Square::Block;
+            self.cells[r][self.field.width - 1] = Square::Block;
         });
         (0..self.field.width).for_each(|c| {
-            self.maze[0][c] = Square::Block;
-            self.maze[self.field.height - 1][c] = Square::Block;
+            self.cells[0][c] = Square::Block;
+            self.cells[self.field.height - 1][c] = Square::Block;
         });
         self
     }
 
     pub fn build(self) -> Maze {
         Maze {
-            maze: self.maze,
+            cells: self.cells,
             field: self.field,
         }
     }
@@ -76,7 +76,7 @@ impl Maze {
         let mut rng = rand::thread_rng();
         let r = rng.gen_range(1..self.field.height - 1);
         let c = rng.gen_range(1..self.field.width - 1);
-        self.maze[r][c] = obj;
+        self.cells[r][c] = obj;
         Coord(r, c)
     }
 
@@ -93,10 +93,10 @@ impl Maze {
             if snake_size.len() < 6 {
                 snake_size.push_back((coord.0, coord.1));
                 let (tail_r, tail_c) = snake_size.pop_front().unwrap();
-                maze.maze[tail_r][tail_c] = Square::Empty;
+                maze.cells[tail_r][tail_c] = Square::Empty;
             } else {
                 let (tail_r, tail_c) = snake_size.pop_front().unwrap();
-                maze.maze[tail_r][tail_c] = Square::Empty;
+                maze.cells[tail_r][tail_c] = Square::Empty;
             }
 
             match p {
@@ -106,10 +106,10 @@ impl Maze {
                 'R' => coord.1 += 1,
                 _ => {}
             }
-            maze.maze[coord.0][coord.1] = Square::Snake;
+            maze.cells[coord.0][coord.1] = Square::Snake;
 
             println!("Current score: {}", score);
-            for row in &maze.maze {
+            for row in &maze.cells {
                 for col in row {
                     print!("{} ", col);
                 }
