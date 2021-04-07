@@ -49,11 +49,11 @@ impl MazeBuilder {
     }
 
     fn build_walls(mut self) -> Self {
-        (0..self.field.height).into_iter().for_each(|r| {
+        (0..self.field.height).for_each(|r| {
             self.maze[r][0] = Square::Block;
             self.maze[r][self.field.width - 1] = Square::Block;
         });
-        (0..self.field.width).into_iter().for_each(|c| {
+        (0..self.field.width).for_each(|c| {
             self.maze[0][c] = Square::Block;
             self.maze[self.field.height - 1][c] = Square::Block;
         });
@@ -81,10 +81,10 @@ impl Maze {
     }
 
     pub fn draw(
-        path: String,
+        path: &str,
         maze: &mut Maze,
         start_info: (Coord, Field),
-        score: &usize,
+        score: usize,
         snake_size: &mut VecDeque<(usize, usize)>,
     ) {
         let (mut coord, _) = start_info;
